@@ -4,7 +4,7 @@ class DataImportWorker
   include Sidekiq::Status::Worker
 
   recurrence { hourly.minute_of_hour(*(0..59)) }
-  STATUSES = [
+  PROGRESS = [
     { percents: 0, message: '60 sec remaining' },
     { percents: 10, message: '54 sec remaining' },
     { percents: 20, message: '48 sec remaining' },
@@ -15,14 +15,14 @@ class DataImportWorker
     { percents: 70, message: 'Almost done' },
     { percents: 80, message: 'Left just a little bit' },
     { percents: 90, message: 'And...' },
-    { percents: 1000, message: 'We did it!' },
+    { percents: 100, message: 'We did it!' },
   ]
 
   def perform
     percents = 0
 
     loop do
-      at percents, status_message(percents)
+      at percents, progress_message(percents)
       break if percents == 100
       percents += 10
       sleep 6
@@ -31,7 +31,7 @@ class DataImportWorker
 
   private
 
-  def status_message(percents)
-    STATUSES.select { |status| status[:percents] == percents }.first[:message]
+  def progress_message(percents)
+    PROGRESS.select { |status| status[:percents] == percents }.first[:message]
   end
 end

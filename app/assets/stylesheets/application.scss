@@ -1,2 +1,13 @@
 @import "bootstrap-sprockets";
 @import "bootstrap";
+@import "chat";
+
+.logo {
+  display: inline-block;
+  background-image: image-url('jetruby.png');
+  background-position: 0 0;
+  background-size: 30px;
+  width: 30px;
+  height: 45px;
+  transition: all .4s ease;
+}

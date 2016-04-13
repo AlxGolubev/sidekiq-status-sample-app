@@ -1,0 +1,13 @@
+.row
+  .col-lg-offset-3.col-lg-6
+    .panel.panel-info
+      .panel-heading Panel heading without title
+      .panel-body.chat-content
+        = render 'message', text: nil
+      .panel-footer
+        = form_tag 
+        .input-group
+          %input.form-control{ placeholder: 'Message...', type: "text"}
+          %span.input-group-btn
+            %button.btn.btn-default{ type: 'button' }
+              %span.glyphicon.glyphicon-send
