@@ -1,0 +1,14 @@
+var chat_content = $('#chat-content')
+var height = chat_content[0].scrollHeight
+
+$('#command').val(null).focus()
+
+chat_content
+  .append('<%= j render('message', message: @response[:command], sender: 'You') %>')
+  .append('<%= j render('message', message: @response[:result], sender: 'Bot') %>')
+
+<% if @response.has_key?(:progress) %>
+  chat_content.append('<%= j render('chart', chart_data: @response.except(:command, :result)) %>')
+<% end %>
+
+chat_content.scrollTop(height);

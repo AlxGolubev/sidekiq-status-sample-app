@@ -18,6 +18,7 @@ gem 'sinatra', require: false
 gem 'rails_dt'
 gem 'redis-namespace'
 gem 'sidetiq'
+gem 'responders', '~> 2.0'
 
 group :development, :test do
   gem 'pry'

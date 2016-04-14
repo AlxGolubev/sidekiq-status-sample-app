@@ -1,74 +1,54 @@
 class Bot
-  attr_reader :session_id, :user_message
+  attr_reader :command, :jid
 
-  def initialize(session_id, user_message)
-    @state = $redis.get(session_id)
-    @session_id = session_id
-    @user_message = user_message
+  def initialize(command)
+    @command = command.strip
+    @jid = nil
   end
 
-  def message
-    return error unless respond_to? @state
-    send(@state)
+  def call
+    send(command_method).merge(command: command)
   end
 
   def error
-    $redis.set(session_id, nil)
+    { result: 'Wrong command. Available commands: /list, /status jid' }
+  end
+
+  def list
+    workers = Sidekiq::Workers.new
+    return { result: 'Sorry, jobs list are empty :(' } if workers.size.zero?
+
+    { result: build_jids_list(workers) }
+  end
+
+  def status
+    return { result: "Incorrect jid: #{jid}" } if Sidekiq::Status::status(jid).nil?
 
     {
-      message: 'Sorry, Something went wrong.. Lets try again!',
-      user_message: user_message
-    }
-  end
-
-  def welcome
-    { response: 'Hey, what is your name?', user_message: user_message }
-  end
-
-  def requesting
-    if workers.size == 0
-      $redis.set(session_id, 'waiting_for_jobs')
-      return have_no_active_jobs
-    end
-
-    { response: build_jids_list(workers), user_message: user_message }
-  end
-
-  def have_no_active_jobs
-    {
-      response: 'Sorry, currently I do not have jobs for you',
-      user_message: user_message
-    }
-  end
-
-  def parting
-    {
-      response: 'Greate, lets see the progress of choosen Job!',
-      user_message: user_message,
-      partial: 'job_status',
-      progress: Sidekiq::Status::at(user_message),
-      job_message: Sidekiq::Status::message(user_message)
-    }
-  end
-
-  def waiting_for_jobs
-    return requesting unless Sidekiq::Workers.new.size.zero?
-
-    {
-      response: 'I am so sorry, jobs list still are empty',
-      user_message: user_message
+      result: 'Great, lets see the progress of choosen Job!',
+      progress: Sidekiq::Status::at(jid),
+      progress_message: Sidekiq::Status::message(jid)
     }
   end
 
   private
 
+  def command_method
+    if command.match(/^\/list/)
+      :list
+    elsif command.match(/^\/status/)
+      @jid ||= command.match(/(^\/status\s)(?<jid>\w+)/)[:jid]
+      :status
+    else
+      :error
+    end
+  end
+
   def build_jids_list(workers)
     separator = ', ' if workers.size > 1
+    result = 'This is the list of current Job ids: '
 
-    response = "Hi, #{user_message}. This is the list of current Job ids" +
-                 '(in response send me one of the ids for checking job status): '
-
-    response.tap do |string|
+    result.tap do |string|
       workers.each do |process_id, thread_id, work|
         string << "#{work["payload"]["jid"]}#{separator}"
       end

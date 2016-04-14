@@ -1,13 +1,11 @@
-.row
-  .col-lg-offset-3.col-lg-6
-    .panel.panel-info
-      .panel-heading Panel heading without title
-      .panel-body.chat-content
-        = render 'message', text: nil
-      .panel-footer
-        = form_tag 
+.col-lg-offset-1.col-lg-10
+  .panel.panel-info
+    .panel-heading JobStatusBot
+    .panel-body#chat-content
+    .panel-footer
+      = form_tag request_path, method: :post, remote: true do
         .input-group
-          %input.form-control{ placeholder: 'Message...', type: "text"}
+          = text_field_tag :command, nil, placeholder: 'Message...', class: 'form-control', id: 'command'
           %span.input-group-btn
-            %button.btn.btn-default{ type: 'button' }
+            = button_tag(class: 'btn btn-default') do
               %span.glyphicon.glyphicon-send
